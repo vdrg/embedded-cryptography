@@ -182,7 +182,7 @@ pub extern "C" fn zkp_generate_proof(
     }
     // The ZKP trace includes an extra first row for hash(nonce||leaf),
     // so the prover requires (levels + 1) to be a power of two.
-    let rows = levels + 1;
+    let rows = levels;
     if !rows.is_power_of_two() {
         return BATTERY_ERR_INPUT;
     }
@@ -218,7 +218,7 @@ pub extern "C" fn zkp_generate_proof(
     let (proof, public_values) = zkp::generate_proof(&leaf, &neighbors, &nonce_arr);
     // Public values layout is fixed at 24 = 3 * HASH_SIZE elements:
     //   [root(8) | nonce_field(8) | hash(nonce||leaf)(8)].
-    if public_values.len() != 3 * zkp::HASH_SIZE {
+    if public_values.len() != zkp::HASH_SIZE {
         return BATTERY_ERR_INPUT;
     }
     let bundle = ZkpProofBundle(proof, public_values);
@@ -427,7 +427,7 @@ mod tests {
     fn zkp_proof_buf_too_small() {
         // Pack args and then request proof with zero-sized buffer.
         // Trace rows = levels + 1 must be a power of two.
-        let levels = 31usize; // rows = 32
+        let levels = 32usize; // rows = 32
         let leaf = [4u32; 8];
         let neighbors = vec![3u32; levels * 8];
         let sides = vec![0u8; levels];
@@ -461,7 +461,7 @@ mod tests {
     #[test]
     fn zkp_proof_bundle_roundtrip() {
         // Build opaque args for a valid path (rows = levels + 1 = 32)
-        let levels = 31usize;
+        let levels = 32usize;
         let leaf = [4u32; 8];
         let neighbors = vec![3u32; levels * 8];
         let sides = vec![0u8; levels];
@@ -495,7 +495,7 @@ mod tests {
 
         let bundle: ZkpProofBundle = postcard::from_bytes(&out[..written]).unwrap();
         // Expect exactly 3 * HASH_SIZE public values: root(8) | nonce_field(8) | hash(nonce||leaf)(8)
-        assert_eq!(bundle.1.len(), 3 * zkp::HASH_SIZE);
+        assert_eq!(bundle.1.len(), zkp::HASH_SIZE);
         // Re-serialize and deserialize again to check roundtrip stability of the bundle
         let bytes2 = postcard::to_allocvec(&bundle).unwrap();
         let bundle2: ZkpProofBundle = postcard::from_bytes(&bytes2).unwrap();

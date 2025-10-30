@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
     // Use a compile-time constant to avoid VLA warnings
     // The ZKP trace adds an initial row for hash(nonce||leaf),
     // so `levels + 1` must be a power of two. For a depth-32 demo, pass 31 here.
-    enum { LEVELS = 31 }; // demo depth -> rows = 32
+    enum { LEVELS = 32 }; // demo depth -> rows = 32
     uint32_t leaf8_u32[8];
     uint32_t neighbors8_by_level_u32[LEVELS * 8];
     uint8_t sides[LEVELS];
